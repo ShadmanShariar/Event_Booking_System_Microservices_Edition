@@ -6,18 +6,7 @@ Node.js microservices for event seat booking. Services talk over REST for reques
 
 <img width="1062" height="791" alt="diagram-export-8-21-2026-1_49_03-AM" src="https://github.com/user-attachments/assets/4588b0dd-8265-4342-aa87-927091e787f8" />
 
-```
-Client
-  |  REST
-  v
-user-service     event-service (Redis cache)
-  ^                    ^
-  | REST               | REST (atomic reserve/release)
-  +-------- booking-service --------+
-                     | NATS: booking.confirmed
-                     v
-            notification-service
-```
+
 
 | Service | Port | Database | Extra |
 |---|---|---|---|
@@ -116,6 +105,9 @@ Each service creates its tables on startup (`src/migrate.js`). Postgres database
 `GET /events/:id` includes `"cached": true|false`.
 
 ### Booking Service (`:3003`)
+
+<img width="1703" height="1271" alt="diagram-export-8-21-2026-2_01_05-AM" src="https://github.com/user-attachments/assets/b4fbf2ba-2665-47ba-afb4-777e9b3d1f28" />
+
 
 | # | Method | Endpoint | Description |
 |---|---|---|---|
