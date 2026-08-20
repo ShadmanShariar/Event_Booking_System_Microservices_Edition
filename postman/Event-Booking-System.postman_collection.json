@@ -1,0 +1,178 @@
+{
+  "info": {
+    "name": "Event Booking System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Service",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{userUrl}}/health"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aisha Khan\",\n  \"email\": \"aisha@example.com\"\n}"
+            },
+            "url": "{{userUrl}}/users"
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{userUrl}}/users"
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{userUrl}}/users/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Service",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{eventUrl}}/health"
+          }
+        },
+        {
+          "name": "Create Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Node.js Meetup\",\n  \"seats\": 2,\n  \"date\": \"2026-09-01T18:00:00.000Z\"\n}"
+            },
+            "url": "{{eventUrl}}/events"
+          }
+        },
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{eventUrl}}/events"
+          }
+        },
+        {
+          "name": "Get Event (cached after first call)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{eventUrl}}/events/1"
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Node.js Meetup\",\n  \"seats\": 5,\n  \"date\": \"2026-09-01T18:00:00.000Z\"\n}"
+            },
+            "url": "{{eventUrl}}/events/1"
+          }
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{eventUrl}}/events/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Booking Service",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{bookingUrl}}/health"
+          }
+        },
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"eventId\": 1,\n  \"seats\": 1\n}"
+            },
+            "url": "{{bookingUrl}}/bookings"
+          }
+        },
+        {
+          "name": "List Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{bookingUrl}}/bookings"
+          }
+        },
+        {
+          "name": "Get Booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{bookingUrl}}/bookings/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notification Service",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{notificationUrl}}/health"
+          }
+        },
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{notificationUrl}}/notifications"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "userUrl", "value": "http://localhost:3001" },
+    { "key": "eventUrl", "value": "http://localhost:3002" },
+    { "key": "bookingUrl", "value": "http://localhost:3003" },
+    { "key": "notificationUrl", "value": "http://localhost:3004" }
+  ]
+}
