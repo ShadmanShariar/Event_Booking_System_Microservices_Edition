@@ -87,51 +87,192 @@ Each service creates its tables on startup (`src/migrate.js`). Postgres database
 | message | TEXT |
 | created_at | TIMESTAMP |
 
-## API endpoints
+## 1. Complete API Reference
 
-### User service (`:3001`)
+### User Service (`:3001`)
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/health` | Health check |
-| POST | `/users` | Create user `{ name, email }` |
-| GET | `/users` | List users |
-| GET | `/users/:id` | Get user |
+| # | Method | Endpoint | Description |
+|---|---|---|---|
+| 1 | `GET` | `http://localhost:3001/health` | Service & DB Health Check |
+| 2 | `POST` | `http://localhost:3001/users` | Register a new user `{ name, email }` |
+| 3 | `GET` | `http://localhost:3001/users` | List all users |
+| 4 | `GET` | `http://localhost:3001/users/:id` | Get user details by ID |
 
-### Event service (`:3002`)
+### Event Service (`:3002`)
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/health` | Health check |
-| POST | `/events` | Create event `{ title, seats, date }` |
-| GET | `/events` | List events |
-| GET | `/events/:id` | Get event (Redis cache, 60s TTL) |
-| PUT | `/events/:id` | Update event |
-| DELETE | `/events/:id` | Delete event |
-| POST | `/events/:id/reserve` | Internal: decrement seats atomically |
-| POST | `/events/:id/release` | Internal: return seats if booking insert fails |
+| # | Method | Endpoint | Description |
+|---|---|---|---|
+| 5 | `GET` | `http://localhost:3002/health` | Service & DB Health Check |
+| 6 | `POST` | `http://localhost:3002/events` | Create an event with seat capacity `{ title, seats, date }` |
+| 7 | `GET` | `http://localhost:3002/events` | List all events |
+| 8 | `GET` | `http://localhost:3002/events/:id` | Get event (Redis Cache, 60s TTL) |
+| 9 | `PUT` | `http://localhost:3002/events/:id` | Update event (invalidates cache) |
+| 10 | `DELETE` | `http://localhost:3002/events/:id` | Delete event (invalidates cache) |
+| 11 | `POST` | `http://localhost:3002/events/:id/reserve` | Atomic seat decrement (Internal) |
+| 12 | `POST` | `http://localhost:3002/events/:id/release` | Release seats back (Internal) |
 
 `GET /events/:id` includes `"cached": true|false`.
 
-### Booking service (`:3003`)
+### Booking Service (`:3003`)
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/health` | Health check |
-| POST | `/bookings` | Book seats `{ userId, eventId, seats }` |
-| GET | `/bookings` | List bookings |
-| GET | `/bookings/:id` | Get booking |
+| # | Method | Endpoint | Description |
+|---|---|---|---|
+| 13 | `GET` | `http://localhost:3003/health` | Service & DB Health Check |
+| 14 | `POST` | `http://localhost:3003/bookings` | Book seats `{ userId, eventId, seats }` (Orchestrates User + Event + NATS) |
+| 15 | `GET` | `http://localhost:3003/bookings` | List all bookings |
+| 16 | `GET` | `http://localhost:3003/bookings/:id` | Get booking details by ID |
 
 Rate limit: 20 requests per IP per 60 seconds (Redis).
 
-### Notification service (`:3004`)
+### Notification Service (`:3004`)
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/health` | Health check |
-| GET | `/notifications` | Stored confirmation messages |
+| # | Method | Endpoint | Description |
+|---|---|---|---|
+| 17 | `GET` | `http://localhost:3004/health` | Service & DB Health Check |
+| 18 | `GET` | `http://localhost:3004/notifications` | View messages consumed from NATS |
 
 Postman collection: `postman/Event-Booking-System.postman_collection.json`
+
+## 2. Step-by-Step Postman Testing Flow
+
+Follow these steps sequentially to test the full distributed lifecycle:
+
+### Step 1: Verify All Services are Healthy
+Send `GET` requests to check service and database connectivity:
+- `GET http://localhost:3001/health` -> `{"status": "ok", "service": "user-service"}`
+- `GET http://localhost:3002/health` -> `{"status": "ok", "service": "event-service"}`
+- `GET http://localhost:3003/health` -> `{"status": "ok", "service": "booking-service"}`
+- `GET http://localhost:3004/health` -> `{"status": "ok", "service": "notification-service"}`
+
+### Step 2: Create a User
+- **Method**: `POST`
+- **URL**: `http://localhost:3001/users`
+- **Headers**: `Content-Type: application/json`
+- **Body** (raw JSON):
+```json
+{
+  "name": "Sarah Connor",
+  "email": "sarah.connor@example.com"
+}
+```
+- **Expected Status**: `201 Created`
+- **Response**: Note the generated `id` (e.g. `1`).
+
+### Step 3: Create an Event
+- **Method**: `POST`
+- **URL**: `http://localhost:3002/events`
+- **Headers**: `Content-Type: application/json`
+- **Body** (raw JSON):
+```json
+{
+  "title": "Cloud Native Summit 2026",
+  "seats": 10,
+  "date": "2026-11-20T10:00:00.000Z"
+}
+```
+- **Expected Status**: `201 Created`
+- **Response**: Note the generated `id` (e.g. `1`).
+
+### Step 4: Test Redis Caching on Event Service
+- **Method**: `GET`
+- **URL**: `http://localhost:3002/events/1`
+- **First Request (Cache Miss)**:
+  - Response contains: `"cached": false`
+  - Data is retrieved from PostgreSQL and cached in Redis.
+- **Second Request immediately after (Cache Hit)**:
+  - Response contains: `"cached": true`
+  - Data is retrieved directly from Redis.
+
+### Step 5: Book Seats (End-to-End Orchestration)
+This call checks the user, atomically reserves seats in the event service, creates a booking record, and publishes a `booking.confirmed` event to NATS.
+
+- **Method**: `POST`
+- **URL**: `http://localhost:3003/bookings`
+- **Headers**: `Content-Type: application/json`
+- **Body** (raw JSON):
+```json
+{
+  "userId": 1,
+  "eventId": 1,
+  "seats": 3
+}
+```
+- **Expected Status**: `201 Created`
+- **Response**:
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "event_id": 1,
+  "seats": 3,
+  "status": "confirmed",
+  "created_at": "..."
+}
+```
+
+### Step 6: Verify Atomic Seat Decrement
+- **Method**: `GET`
+- **URL**: `http://localhost:3002/events/1`
+- **Expected Result**: Seats should now be `7` (10 original minus 3 booked).
+
+### Step 7: Verify Notification Consumer (NATS)
+- **Method**: `GET`
+- **URL**: `http://localhost:3004/notifications`
+- **Expected Status**: `200 OK`
+- **Response**: The notification service automatically consumed the event from NATS and saved the record:
+```json
+[
+  {
+    "id": 1,
+    "booking_id": 1,
+    "user_id": 1,
+    "event_id": 1,
+    "message": "Booking confirmed for Sarah Connor (sarah.connor@example.com): 3 seat(s) for \"Cloud Native Summit 2026\". Booking ID 1.",
+    "created_at": "..."
+  }
+]
+```
+
+### Step 8: Test Concurrency & Edge Cases
+
+#### A. Overbooking Prevention (Not enough seats)
+- **Method**: `POST` `http://localhost:3003/bookings`
+- **Body**: `{"userId": 1, "eventId": 1, "seats": 50}`
+- **Expected Status**: `409 Conflict` (`{"error": "not enough seats"}`)
+
+#### B. Duplicate User Email Prevention
+- **Method**: `POST` `http://localhost:3001/users`
+- **Body**: `{"name": "Sarah", "email": "sarah.connor@example.com"}`
+- **Expected Status**: `409 Conflict` (`{"error": "email already exists"}`)
+
+#### C. Invalid Email Format
+- **Method**: `POST` `http://localhost:3001/users`
+- **Body**: `{"name": "Bad Email", "email": "not-valid"}`
+- **Expected Status**: `400 Bad Request` (`{"error": "email is invalid"}`)
+
+#### D. Non-Existent Entity
+- **Method**: `GET` `http://localhost:3001/users/99999`
+- **Expected Status**: `404 Not Found` (`{"error": "user not found"}`)
+
+### Step 9: Update Event & Test Cache Invalidation
+- **Method**: `PUT`
+- **URL**: `http://localhost:3002/events/1`
+- **Body**:
+```json
+{
+  "title": "Cloud Native Summit 2026 - Updated",
+  "seats": 20,
+  "date": "2026-11-20T10:00:00.000Z"
+}
+```
+- **Expected Status**: `200 OK`
+- Next call to `GET http://localhost:3002/events/1` will return `"cached": false` with the new title, verifying that update invalidated the Redis cache.
+
+### Step 10: Delete Event
+- **Method**: `DELETE`
+- **URL**: `http://localhost:3002/events/1`
+- **Expected Status**: `204 No Content`
+- A subsequent `GET http://localhost:3002/events/1` will return `404 Not Found`.
 
 ## Race-condition-safe booking
 
