@@ -4,6 +4,8 @@ Node.js microservices for event seat booking. Services talk over REST for reques
 
 ## Architecture
 
+<img width="1062" height="791" alt="diagram-export-8-21-2026-1_49_03-AM" src="https://github.com/user-attachments/assets/4588b0dd-8265-4342-aa87-927091e787f8" />
+
 ```
 Client
   |  REST
