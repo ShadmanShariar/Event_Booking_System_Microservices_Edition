@@ -28,11 +28,19 @@
           }
         },
         {
-          "name": "List Users",
+          "name": "List Users (Paginated)",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{userUrl}}/users"
+            "url": {
+              "raw": "{{userUrl}}/users?page=1&limit=5",
+              "host": ["{{userUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "page", "value": "1", "description": "Page number (default: 1)" },
+                { "key": "limit", "value": "5", "description": "Items per page (default: 5)" }
+              ]
+            }
           }
         },
         {
@@ -69,11 +77,19 @@
           }
         },
         {
-          "name": "List Events",
+          "name": "List Events (Paginated)",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{eventUrl}}/events"
+            "url": {
+              "raw": "{{eventUrl}}/events?page=1&limit=5",
+              "host": ["{{eventUrl}}"],
+              "path": ["events"],
+              "query": [
+                { "key": "page", "value": "1", "description": "Page number (default: 1)" },
+                { "key": "limit", "value": "5", "description": "Items per page (default: 5)" }
+              ]
+            }
           }
         },
         {
@@ -130,11 +146,19 @@
           }
         },
         {
-          "name": "List Bookings",
+          "name": "List Bookings (Paginated)",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{bookingUrl}}/bookings"
+            "url": {
+              "raw": "{{bookingUrl}}/bookings?page=1&limit=5",
+              "host": ["{{bookingUrl}}"],
+              "path": ["bookings"],
+              "query": [
+                { "key": "page", "value": "1", "description": "Page number (default: 1)" },
+                { "key": "limit", "value": "5", "description": "Items per page (default: 5)" }
+              ]
+            }
           }
         },
         {
@@ -159,11 +183,19 @@
           }
         },
         {
-          "name": "List Notifications",
+          "name": "List Notifications (Paginated)",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{notificationUrl}}/notifications"
+            "url": {
+              "raw": "{{notificationUrl}}/notifications?page=1&limit=5",
+              "host": ["{{notificationUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                { "key": "page", "value": "1", "description": "Page number (default: 1)" },
+                { "key": "limit", "value": "5", "description": "Items per page (default: 5)" }
+              ]
+            }
           }
         }
       ]

@@ -86,7 +86,7 @@ Each service creates its tables on startup (`src/migrate.js`). Postgres database
 |---|---|---|---|
 | 1 | `GET` | `http://localhost:3001/health` | Service & DB Health Check |
 | 2 | `POST` | `http://localhost:3001/users` | Register a new user `{ name, email }` |
-| 3 | `GET` | `http://localhost:3001/users` | List all users |
+| 3 | `GET` | `http://localhost:3001/users?page=1&limit=5` | List users (Paginated, default: 5/page) |
 | 4 | `GET` | `http://localhost:3001/users/:id` | Get user details by ID |
 
 <img width="669" height="547" alt="Annotation 2026-08-21 183654" src="https://github.com/user-attachments/assets/f5639c22-fc08-486d-a6c0-f3d3a4641c22" />
@@ -97,7 +97,7 @@ Each service creates its tables on startup (`src/migrate.js`). Postgres database
 |---|---|---|---|
 | 5 | `GET` | `http://localhost:3002/health` | Service & DB Health Check |
 | 6 | `POST` | `http://localhost:3002/events` | Create an event with seat capacity `{ title, seats, date }` |
-| 7 | `GET` | `http://localhost:3002/events` | List all events |
+| 7 | `GET` | `http://localhost:3002/events?page=1&limit=5` | List events (Paginated, default: 5/page) |
 | 8 | `GET` | `http://localhost:3002/events/:id` | Get event (Redis Cache, 60s TTL) |
 | 9 | `PUT` | `http://localhost:3002/events/:id` | Update event (invalidates cache) |
 | 10 | `DELETE` | `http://localhost:3002/events/:id` | Delete event (invalidates cache) |
@@ -118,7 +118,7 @@ Each service creates its tables on startup (`src/migrate.js`). Postgres database
 |---|---|---|---|
 | 13 | `GET` | `http://localhost:3003/health` | Service & DB Health Check |
 | 14 | `POST` | `http://localhost:3003/bookings` | Book seats `{ userId, eventId, seats }` (Orchestrates User + Event + NATS) |
-| 15 | `GET` | `http://localhost:3003/bookings` | List all bookings |
+| 15 | `GET` | `http://localhost:3003/bookings?page=1&limit=5` | List bookings (Paginated, default: 5/page) |
 | 16 | `GET` | `http://localhost:3003/bookings/:id` | Get booking details by ID |
 
 Rate limit: 20 requests per IP per 60 seconds (Redis).
@@ -128,7 +128,22 @@ Rate limit: 20 requests per IP per 60 seconds (Redis).
 | # | Method | Endpoint | Description |
 |---|---|---|---|
 | 17 | `GET` | `http://localhost:3004/health` | Service & DB Health Check |
-| 18 | `GET` | `http://localhost:3004/notifications` | View messages consumed from NATS |
+| 18 | `GET` | `http://localhost:3004/notifications?page=1&limit=5` | View notifications (Paginated, default: 5/page) |
+
+All listing endpoints return pagination metadata:
+```json
+{
+  "data": [...],
+  "pagination": {
+    "total": 12,
+    "page": 1,
+    "limit": 5,
+    "totalPages": 3,
+    "hasNext": true,
+    "hasPrev": false
+  }
+}
+```
 
 Postman collection: `postman/Event-Booking-System.postman_collection.json`
 
