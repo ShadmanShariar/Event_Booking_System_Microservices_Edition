@@ -1,15 +1,15 @@
 const express = require('express');
 const config = require('./config');
 const { pool } = require('./db');
-const { rateLimit } = require('./redis');
-const { getJson, postJson } = require('./http');
-const { publishBookingConfirmed } = require('./nats');
+const redis = require('./redis');
+const http = require('./http');
+const nats = require('./nats');
 
 const router = express.Router();
 
 async function rateLimitMiddleware(req, res, next) {
   try {
-    const allowed = await rateLimit(req.ip || 'unknown');
+    const allowed = await redis.rateLimit(req.ip || 'unknown');
     if (!allowed) {
       return res.status(429).json({ error: 'too many requests' });
     }
@@ -31,7 +31,7 @@ router.post('/', rateLimitMiddleware, async (req, res, next) => {
       return res.status(400).json({ error: 'seats must be a positive integer' });
     }
 
-    const userResponse = await getJson(`${config.userServiceUrl}/users/${userId}`);
+    const userResponse = await http.getJson(`${config.userServiceUrl}/users/${userId}`);
     if (userResponse.status === 404) {
       return res.status(404).json({ error: 'user not found' });
     }
@@ -39,7 +39,7 @@ router.post('/', rateLimitMiddleware, async (req, res, next) => {
       return res.status(502).json({ error: 'user service unavailable' });
     }
 
-    const eventResponse = await getJson(`${config.eventServiceUrl}/events/${eventId}`);
+    const eventResponse = await http.getJson(`${config.eventServiceUrl}/events/${eventId}`);
     if (eventResponse.status === 404) {
       return res.status(404).json({ error: 'event not found' });
     }
@@ -47,7 +47,7 @@ router.post('/', rateLimitMiddleware, async (req, res, next) => {
       return res.status(502).json({ error: 'event service unavailable' });
     }
 
-    const reserveResponse = await postJson(
+    const reserveResponse = await http.postJson(
       `${config.eventServiceUrl}/events/${eventId}/reserve`,
       { seats: seatCount }
     );
@@ -71,11 +71,11 @@ router.post('/', rateLimitMiddleware, async (req, res, next) => {
       );
       booking = result.rows[0];
     } catch (error) {
-      await postJson(`${config.eventServiceUrl}/events/${eventId}/release`, { seats: seatCount });
+      await http.postJson(`${config.eventServiceUrl}/events/${eventId}/release`, { seats: seatCount });
       throw error;
     }
 
-    await publishBookingConfirmed({
+    await nats.publishBookingConfirmed({
       bookingId: booking.id,
       userId: booking.user_id,
       userName: userResponse.body.name,

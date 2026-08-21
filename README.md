@@ -299,7 +299,28 @@ WHERE id = $2 AND seats >= $1
 RETURNING *;
 ```
 
-PostgreSQL locks the event row during the update. Concurrent bookings cannot oversell. If the booking row cannot be saved, seats are released.
+## Running Unit Tests
+
+Each service has a dedicated unit test suite using Node's native test runner (`node:test` and `node:assert`).
+
+To run unit tests for any service:
+
+```powershell
+# Inside each service folder:
+cd user-service; npm test
+cd ../event-service; npm test
+cd ../booking-service; npm test
+cd ../notification-service; npm test
+```
+
+Or via Docker (without needing Node.js installed locally):
+
+```powershell
+docker run --rm -v "${PWD}/user-service:/app" -w /app node:20-alpine node --test tests/
+docker run --rm -v "${PWD}/event-service:/app" -w /app node:20-alpine node --test tests/
+docker run --rm -v "${PWD}/booking-service:/app" -w /app node:20-alpine node --test tests/
+docker run --rm -v "${PWD}/notification-service:/app" -w /app node:20-alpine node --test tests/
+```
 
 ## Run with Docker Compose
 
