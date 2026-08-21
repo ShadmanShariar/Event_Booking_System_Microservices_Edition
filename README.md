@@ -89,6 +89,8 @@ Each service creates its tables on startup (`src/migrate.js`). Postgres database
 | 3 | `GET` | `http://localhost:3001/users` | List all users |
 | 4 | `GET` | `http://localhost:3001/users/:id` | Get user details by ID |
 
+<img width="669" height="547" alt="Annotation 2026-08-21 183654" src="https://github.com/user-attachments/assets/f5639c22-fc08-486d-a6c0-f3d3a4641c22" />
+
 ### Event Service (`:3002`)
 
 | # | Method | Endpoint | Description |
@@ -105,6 +107,9 @@ Each service creates its tables on startup (`src/migrate.js`). Postgres database
 `GET /events/:id` includes `"cached": true|false`.
 
 ### Booking Service (`:3003`)
+
+<img width="693" height="375" alt="Annotation 2026-08-21 183713" src="https://github.com/user-attachments/assets/a1c47536-43f2-4167-9e83-eaba56911d72" />
+
 
 <img width="1703" height="1271" alt="diagram-export-8-21-2026-2_01_05-AM" src="https://github.com/user-attachments/assets/b4fbf2ba-2665-47ba-afb4-777e9b3d1f28" />
 
